@@ -1,20 +1,44 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class PlayerSnake : MonoBehaviour
 {
+    public Player Player;    
+    public Game Game;
+    public Text amountText;
+
+    private int amount;
+
     public GameObject BodyPrefab;
     private List<GameObject> BodyParts = new List<GameObject>();
     private List<Vector3> PositionsHistory = new List<Vector3>();
     public int Gap = 10;
 
+    void Start()
+    {
+        gameObject.SetActive(true);
+        amount = 1;
+        if (amount <= 0)
+        {
+            gameObject.SetActive(false);
+        }
+        SetAmountText();
+    }
+    public void SetAmountText()
+    {
+        amountText.text = amount.ToString();
+    }
+
+
     public void Update()
     {
         PositionsHistory.Insert(0, transform.position);
-        int index = 0;
+        int index = 1;
         foreach (var body in BodyParts)
         {
             Vector3 point = PositionsHistory[Mathf.Min(index * Gap, PositionsHistory.Count - 1)];
@@ -26,15 +50,35 @@ public class PlayerSnake : MonoBehaviour
     private void GrowSnake()
     {
         GameObject body = Instantiate(BodyPrefab);
-        BodyParts.Add(body);
+        BodyParts.Add(body);        
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void ReductSnake()
+    { 
+        //Понятия не имею и устала пытаться
+    }
+
+    private void OnTriggerEnter(Collider other)
     {
-        if(collision.gameObject.tag == "Food")
+        if(other.gameObject.tag == "Food")
         {
-            Destroy(collision.gameObject);
+            Destroy(other.gameObject);
             GrowSnake();
+            amount++;
+            SetAmountText();
+        }
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.tag == "Block1")
+        {
+            amount--;
+            SetAmountText();
+            if (amount <= 0)
+            {
+                Player.Die();
+            }
         }
     }
 }
